@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-current.dtd">
+<suite name="Mobile Automation Suite" parallel="false" thread-count="1">
+
+    <!-- Android Test Suite -->
+    <test name="Android Tests" enabled="true">
+        <parameter name="platformName" value="Android"/>
+        <parameter name="deviceName" value="Android Emulator"/>
+        <parameter name="platformVersion" value="13"/>
+        <parameter name="appPackage" value="com.example.app"/>
+        <parameter name="appActivity" value="com.example.app.MainActivity"/>
+        <parameter name="automationName" value="UiAutomator2"/>
+        
+        <classes>
+            <class name="com.example.tests.android.LoginTest"/>
+            <class name="com.example.tests.android.NavigationTest"/>
+            <class name="com.example.tests.android.FeatureTest"/>
+        </classes>
+    </test>
+
+    <!-- iOS Test Suite -->
+    <test name="iOS Tests" enabled="true">
+        <parameter name="platformName" value="iOS"/>
+        <parameter name="deviceName" value="iPhone 15"/>
+        <parameter name="platformVersion" value="17.0"/>
+        <parameter name="bundleId" value="com.example.app"/>
+        <parameter name="automationName" value="XCUITest"/>
+        <parameter name="xcodeOrgId" value="YOUR_XCODE_ORG_ID"/>
+        <parameter name="xcodeSigningId" value="iPhone Developer"/>
+        
+        <classes>
+            <class name="com.example.tests.ios.LoginTest"/>
+            <class name="com.example.tests.ios.NavigationTest"/>
+            <class name="com.example.tests.ios.FeatureTest"/>
+        </classes>
+    </test>
+
+    <!-- Listeners for reporting -->
+    <listeners>
+        <listener class-name="com.example.listeners.TestListener"/>
+        <listener class-name="com.example.listeners.ExtentReportListener"/>
+    </listeners>
+
+</suite>

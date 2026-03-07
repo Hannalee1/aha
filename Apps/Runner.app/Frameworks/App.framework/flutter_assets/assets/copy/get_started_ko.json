@@ -1,0 +1,13 @@
+{
+  "screen": {
+    "getStarted": {
+      "button": {
+        "login": "로그인",
+        "signup": "회원가입",
+        "community": "커뮤니티 입장",
+        "terms": "이용 약관",
+        "privacy": "개인정보 처리방침"
+      }
+    }
+  }
+}
