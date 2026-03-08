@@ -1,0 +1,103 @@
+name: Mobile automation CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build apps
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 11
+
+      - name: Build Android APK
+        run: |
+          cd androidApp               # adjust path to your Android project
+          ./gradlew clean assembleDebug
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-apk
+          path: androidApp/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Build iOS IPA
+        run: |
+          cd iosApp                   # adjust to your Xcode project
+          xcodebuild -workspace MyApp.xcworkspace \
+                     -scheme MyApp \
+                     -sdk iphonesimulator \
+                     -configuration Debug \
+                     -derivedDataPath build
+          xcrun -sdk iphonesimulator PackageApplication \
+                -v build/Build/Products/Debug-iphonesimulator/MyApp.app \
+                -o $PWD/build/MyApp.ipa
+      - name: Upload iOS IPA
+        uses: actions/upload-artifact@v3
+        with:
+          name: ios-ipa
+          path: iosApp/build/MyApp.ipa
+
+  test:
+    name: Run Appium tests
+    needs: build
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download built APK
+        uses: actions/download-artifact@v3
+        with:
+          name: android-apk
+          path: builds/
+
+      - name: Download built IPA
+        uses: actions/download-artifact@v3
+        with:
+          name: ios-ipa
+          path: builds/
+
+      - name: Start Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          target: google_apis
+          emulator-options: -no-window -no-audio
+
+      - name: Boot iOS simulator
+        run: |
+          xcrun simctl boot "iPhone 11" || true
+          xcrun simctl install booted builds/app-debug.apk || true
+          xcrun simctl install booted builds/MyApp.ipa || true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: |
+          cd MobileAutomation
+          npm ci                           # or mvn test if you run with Maven
+
+      - name: Execute tests
+        run: |
+          cd MobileAutomation
+          npm run test
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-reports
+          path: MobileAutomation/reports/
